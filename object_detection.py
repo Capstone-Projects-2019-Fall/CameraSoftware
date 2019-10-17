@@ -92,7 +92,7 @@ while True and flag==True:
             # show the output frame
             #cv2.imshow("Frame", frame)
             key = cv2.waitKey(1) & 0xFF
-            cv2.imwrite('/home/pi/ObjectDetectionRaspPi/WhoDat.jpg',frame)
+            cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
             print("Sending email...")
             sendEmail()
             upload()

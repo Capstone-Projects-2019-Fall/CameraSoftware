@@ -8,7 +8,7 @@ from firebase_admin import storage
 from google.cloud import firestore
 from firebase_admin import firestore
 
-cred=credentials.Certificate('/home/pi/ObjectDetectionRaspPi/cred.json')
+cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'mspi-a4b75.appspot.com'
 })
@@ -17,8 +17,8 @@ bucket = storage.bucket()
 
 
 def upload():
-	print("Sending Image to Firestore...")
-	blob = bucket.blob( str(dt.datetime.now()) + '.jpg')
-	outfile='/home/pi/ObjectDetectionRaspPi/WhoDat.jpg'
-	blob.upload_from_filename(outfile)
-	print("Image was uploaded to firestore!")
+    print("Sending Image to Firestore...")
+    blob = bucket.blob( str(dt.datetime.now()) + '.jpg')
+    outfile='/home/pi/Desktop/CameraSoftware/WhoDat.jpg'
+    blob.upload_from_filename(outfile)
+    print("Image was uploaded to firestore!")

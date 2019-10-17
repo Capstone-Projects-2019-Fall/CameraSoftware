@@ -6,7 +6,7 @@ from email.mime.image import MIMEImage
 #Email will be sent from MSPi Gmail account
 fromEmail = 'mspismartcam@gmail.com'
 #Ask me for Password (Nick)
-fromEmailPassword = 'ENTER PASSWORD HERE'
+fromEmailPassword = ''
 
 # Email your email here for testing
 toEmail = 'nicolas182@icloud.com'
@@ -19,7 +19,7 @@ def sendEmail():
     msgRoot['To'] = toEmail
     msgRoot.preamble = 'MSPi camera update'
     
-    fp = open('/home/pi/ObjectDetectionRaspPi/WhoDat.jpg', 'rb')
+    fp = open('/home/pi/Desktop/CameraSoftware/WhoDat.jpg', 'rb')
     
     
 
