@@ -4,9 +4,12 @@
 # import the necessary packages
 from imutils.video import VideoStream
 from imutils.video import FPS
+from recordOnMotion import detect_motion
 import numpy as np
 import argparse
+import threading
 import imutils
+import os
 import time
 import cv2
 from mail import sendEmail
@@ -92,14 +95,18 @@ while True and flag==True:
             # show the output frame
             #cv2.imshow("Frame", frame)
             key = cv2.waitKey(1) & 0xFF
-            cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
+            #cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
+            cv2.imwrite('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg',frame)
             print("Sending email...")
             sendEmail()
-            upload()
+            upload("image")
             print("done!")
-            #TODO: Call motion detection Script here
-            flag = False
             
+            detect_motion(32,)
+            flag = False
+            #exec(open("object_detection.py").read())
+            
+            #Restart Script Here
             fps.stop()
             print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
             print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
