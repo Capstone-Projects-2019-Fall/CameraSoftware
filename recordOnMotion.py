@@ -17,7 +17,7 @@ import os
 import sys
 
 filename = 'video.mp4'
-frames_per_second = 24.0
+frames_per_second = 30.0
 res = '720p'
 
 def change_res(cap, width, height):

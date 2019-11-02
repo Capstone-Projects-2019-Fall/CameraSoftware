@@ -14,6 +14,7 @@ import time
 import cv2
 from mail import sendEmail
 from sendToFirebase import upload
+from selenium import webdriver
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -47,6 +48,7 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 fps = FPS().start()
 flag = True
+
 
 # loop over the frames from the video stream
 while True and flag==True:
@@ -104,9 +106,9 @@ while True and flag==True:
             
             detect_motion(32,)
             flag = False
-            #exec(open("object_detection.py").read())
             
-            #Restart Script Here
+            
+            #Restart Script
             fps.stop()
             print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
             print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
