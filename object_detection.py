@@ -42,7 +42,7 @@ print("[INFO] starting video stream...")
 vs = VideoStream(src=0).start()
 # vs = VideoStream(usePiCamera=True).start()
 time.sleep(2.0)
-fps = FPS().start()
+#fps = FPS().start()
 flag = True
 
 # loop over the frames from the video stream
@@ -77,6 +77,7 @@ while True and flag==True:
             idx = int(detections[0, 0, i, 1])
             if CLASSES[idx] not in  DETECT:
                 continue
+            fps = FPS().start()
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
 
@@ -101,8 +102,8 @@ while True and flag==True:
             flag = False
             
             fps.stop()
-            print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-            print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+            print("[INFO] elapsed time from detection: {:.2f}".format(fps.elapsed()))
+           # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
             # do a bit of cleanup
             cv2.destroyAllWindows()

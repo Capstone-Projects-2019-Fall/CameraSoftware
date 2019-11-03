@@ -6,7 +6,7 @@ from email.mime.image import MIMEImage
 #Email will be sent from MSPi Gmail account
 fromEmail = 'mspismartcam@gmail.com'
 #Ask me for Password (Nick)
-fromEmailPassword = ''
+fromEmailPassword = 'MspiCamera4398'
 
 # Email your email here for testing
 toEmail = 'nicolas182@icloud.com'
