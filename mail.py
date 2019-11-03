@@ -20,6 +20,7 @@ def sendEmail():
     msgRoot.preamble = 'MSPi camera update'
     
     fp = open('/home/pi/Desktop/CameraSoftware/WhoDat.jpg', 'rb')
+    #fp = open('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg', 'rb')
     
     
 

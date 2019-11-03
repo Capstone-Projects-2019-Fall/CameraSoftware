@@ -4,13 +4,17 @@
 # import the necessary packages
 from imutils.video import VideoStream
 from imutils.video import FPS
+from recordOnMotion import detect_motion
 import numpy as np
 import argparse
+import threading
 import imutils
+import os
 import time
 import cv2
 from mail import sendEmail
 from sendToFirebase import upload
+from selenium import webdriver
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -44,6 +48,7 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 #fps = FPS().start()
 flag = True
+
 
 # loop over the frames from the video stream
 while True and flag==True:
@@ -94,13 +99,17 @@ while True and flag==True:
             #cv2.imshow("Frame", frame)
             key = cv2.waitKey(1) & 0xFF
             cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
+            #cv2.imwrite('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg',frame)
             print("Sending email...")
             sendEmail()
-            upload()
+            #upload("image")
             print("done!")
-            #TODO: Call motion detection Script here
+            
+            detect_motion(32,)
             flag = False
             
+            
+            #Restart Script
             fps.stop()
             print("[INFO] elapsed time from detection: {:.2f}".format(fps.elapsed()))
            # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
