@@ -8,8 +8,8 @@ from firebase_admin import storage
 from google.cloud import firestore
 from firebase_admin import firestore
 
-#cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
-cred=credentials.Certificate('cred.json')
+cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
+#cred=credentials.Certificate('cred.json')
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'mspi-a4b75.appspot.com'
 })
@@ -17,25 +17,26 @@ storage_client = firestore.client()
 bucket = storage.bucket()
 
 
-def upload(file):
+def upload():
     outfile = None
     blob = None
     
-    if file is "image":
-        #outfile='/home/pi/Desktop/CameraSoftware/WhoDat.jpg'
-        outfile='WhoDat.jpg'
-        print("Sending Image to Firestore...")
-        blob = bucket.blob( 'images/'+str(dt.datetime.now()) + '.jpg')
-        blob.upload_from_filename(outfile)
-        print("Image was uploaded to firestore!")
+    name = str(dt.datetime.now())
+
+    outfile='/home/pi/Desktop/CameraSoftware/WhoDat.jpg'
+    #outfile='WhoDat.jpg'
+    print("Sending Image to Firestore...")
+    blob = bucket.blob( 'images/'+ name + '.jpg')
+    blob.upload_from_filename(outfile)
+    print("Image was uploaded to firestore!")
     
-    if file is "video":
-        #outfile='/home/pi/Desktop/CameraSoftware/video.mp4'
-        outfile='video.mp4'
-        print("Sending Video to Firestore...")
-        blob = bucket.blob( 'videos/'+str(dt.datetime.now()) + '.mp4')
-        blob.upload_from_filename(outfile)
-        print("Video was uploaded to firestore!")
+    
+    outfile='/home/pi/Desktop/CameraSoftware/video.mp4'
+    #outfile='video.mp4'
+    print("Sending Video to Firestore...")
+    blob = bucket.blob( 'videos/'+ name + '.mp4')
+    blob.upload_from_filename(outfile)
+    print("Video was uploaded to firestore!")
 
 
     fireapp = firebase.FirebaseApplication('https://mspi-a4b75.firebaseio.com',  None)

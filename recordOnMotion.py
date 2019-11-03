@@ -134,7 +134,7 @@ def detect_motion(frameCount):
 
                     cv2.destroyAllWindows()
                     print("video Ends")
-                    upload("video")
+                    upload()
 
                     t.do_run = False
 

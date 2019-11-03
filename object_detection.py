@@ -97,11 +97,11 @@ while True and flag==True:
             # show the output frame
             #cv2.imshow("Frame", frame)
             key = cv2.waitKey(1) & 0xFF
-            #cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
-            cv2.imwrite('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg',frame)
+            cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
+            #cv2.imwrite('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg',frame)
             print("Sending email...")
             sendEmail()
-            upload("image")
+            #upload("image")
             print("done!")
             
             detect_motion(32,)
