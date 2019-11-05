@@ -34,6 +34,7 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
     "sofa", "train", "tvmonitor"]
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
+#Set holds only what we want to detect
 DETECT = set(["person"])
 
 # load our serialized model from disk
@@ -44,14 +45,15 @@ net = cv2.dnn.readNetFromCaffe("MobileNetSSD_deploy.prototxt.txt", "MobileNetSSD
 # and initialize the FPS counter
 print("[INFO] starting video stream...")
 vs = VideoStream(src=0).start()
+
 # vs = VideoStream(usePiCamera=True).start()
+#Sleep allows camera to warmup
 time.sleep(2.0)
 #fps = FPS().start()
 flag = True
 
-
 # loop over the frames from the video stream
-while True and flag==True:
+while flag:
     # grab the frame from the threaded video stream and resize it
     # to have a maximum width of 400 pixels
     frame = vs.read()
@@ -104,21 +106,26 @@ while True and flag==True:
             sendEmail()
             #upload("image")
             print("done!")
+            fps.stop()
+            vs.stop()
             
-            detect_motion(32,)
+            #breaks from whil loop
             flag = False
             
             
-            #Restart Script
-            fps.stop()
+            
+            
             print("[INFO] elapsed time from detection: {:.2f}".format(fps.elapsed()))
            # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
             # do a bit of cleanup
             cv2.destroyAllWindows()
             break
-            vs.stop()
+            
             
     
 cv2.destroyAllWindows()
-vs.stop()
+#Release camera
+vs.stream.release()
+#
+detect_motion(32,)

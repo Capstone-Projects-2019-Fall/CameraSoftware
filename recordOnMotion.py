@@ -33,9 +33,7 @@ STD_DIMENSIONS = {
     "4k": (3840, 2160),
 }
 
-# grab resolution dimensions and set video capture to it.
-
-
+# grab resolution dimensions and set video capture to it
 def get_dims(cap, res='1080p'):
     width, height = STD_DIMENSIONS["480p"]
     if res in STD_DIMENSIONS:
@@ -50,8 +48,8 @@ def get_dims(cap, res='1080p'):
 # Types of Codes: http://www.fourcc.org/codecs.php
 VIDEO_TYPE = {
     'avi': cv2.VideoWriter_fourcc(*'XVID'),
-    # 'mp4': cv2.VideoWriter_fourcc(*'H264'),
-    'mp4': cv2.VideoWriter_fourcc(*'XVID'),
+    'mp4': cv2.VideoWriter_fourcc(*'H264'),
+    #'mp4': cv2.VideoWriter_fourcc(*'XVID'),
 }
 
 
@@ -68,14 +66,8 @@ def get_video_type(filename):
 outputFrame = None
 lock = threading.Lock()
 isRecording = False
-# initialize a flask object
-app = Flask(__name__)
 
 
-# initialize the video stream and allow the camera sensor to
-# warmup
-#vs = VideoStream(usePiCamera=1).start()
-vs = VideoStream(src=0).start()
 time.sleep(2.0)
 timer = TicToc()
 
@@ -83,7 +75,8 @@ timer = TicToc()
 def detect_motion(frameCount):
         # grab global references to the video stream, output frame, and
         # lock variables
-    global vs, outputFrame, lock
+    global outputFrame, lock
+    
 
     # initialize the motion detector and the total number of frames
     # read thus far
@@ -98,18 +91,20 @@ def detect_motion(frameCount):
 
     # Starts Timer
     timer.tic()
-
+    #Grab reference to current thread
     t = threading.currentThread()
     # loop over frames from the video stream
+    
+    #While Thread is not told to stop, keep running
     while getattr(t, "do_run", True):
 
-        # record Video
+        # Read video streaming frames and send it to video
         ret, frame = cap.read()
         out.write(frame)
 
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
-        frame = vs.read()
+        
         frame = imutils.resize(frame, width=400)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
@@ -129,20 +124,22 @@ def detect_motion(frameCount):
             if(timer.toc() is not None):
                 # print(timer.toc())
                 if(motion is None and timer.toc() >= 5):
+                    #Stops recording + Cleanup
                     cap.release()
                     out.release()
-
                     cv2.destroyAllWindows()
                     print("video Ends")
                     upload()
-
+                    #Tells thread to stop
                     t.do_run = False
 
             # cehck to see if motion was found in the frame
             if motion is not None:
+                #If motion happens, restart timer
                 timer.tic()
                 if isRecording == False:
                     print("Video Starts Here")
+                    #TODO: Remove this... Not using anymore
                     isRecording = True
 
                 # unpack the tuple and draw the box surrounding the
@@ -162,18 +159,4 @@ def detect_motion(frameCount):
             outputFrame = frame.copy()
 
 
-# check to see if this is the main thread of execution
-if __name__ == '__main__':
-  # start a thread that will perform motion detection
-    # t = threading.Thread(target=detect_motion, args=(
-    #     32,))
-    # t.daemon = True
-    # t.start()
-    # t.join()
-    # sys.exit()
 
-    # # start the flask app
-    # app.run(debug=True,threaded=True, use_reloader=False)
-
-# release the video stream pointer
-    vs.stop()

@@ -8,6 +8,7 @@ from firebase_admin import storage
 from google.cloud import firestore
 from firebase_admin import firestore
 
+#Get Credentials from JSON
 cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
 #cred=credentials.Certificate('cred.json')
 firebase_admin.initialize_app(cred, {
@@ -22,7 +23,8 @@ def upload():
     blob = None
     
     name = str(dt.datetime.now())
-
+    
+    #Upload image
     outfile='/home/pi/Desktop/CameraSoftware/WhoDat.jpg'
     #outfile='WhoDat.jpg'
     print("Sending Image to Firestore...")
@@ -30,8 +32,8 @@ def upload():
     blob.upload_from_filename(outfile)
     print("Image was uploaded to firestore!")
     
-    
-    outfile='/home/pi/Desktop/CameraSoftware/video.mp4'
+    #Upload Video
+    outfile='/home/pi/Desktop/CameraSoftware/video.h264'
     #outfile='video.mp4'
     print("Sending Video to Firestore...")
     blob = bucket.blob( 'videos/'+ name + '.mp4')
