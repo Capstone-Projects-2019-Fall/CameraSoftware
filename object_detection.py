@@ -16,6 +16,7 @@ from mail import sendEmail
 from sendToFirebase import upload
 from selenium import webdriver
 
+time.sleep(2)
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--prototxt", required=False,

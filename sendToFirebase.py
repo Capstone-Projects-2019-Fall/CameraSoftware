@@ -33,7 +33,7 @@ def upload():
     print("Image was uploaded to firestore!")
     
     #Upload Video
-    outfile='/home/pi/Desktop/CameraSoftware/video.h264'
+    outfile='/home/pi/Desktop/CameraSoftware/video.mp4'
     #outfile='video.mp4'
     print("Sending Video to Firestore...")
     blob = bucket.blob( 'videos/'+ name + '.mp4')
