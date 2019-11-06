@@ -2,14 +2,39 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+import json
+import datetime as dt
+from email.mime.image import MIMEImage
+import os
+import firebase_admin
+from firebase import firebase
+from firebase_admin import credentials
+from firebase_admin import storage
+from google.cloud import firestore
+from firebase_admin import firestore
 
 #Email will be sent from MSPi Gmail account
 fromEmail = 'mspismartcam@gmail.com'
 #Ask me for Password (Nick)
 fromEmailPassword = 'MspiCamera4398'
 
+
+db = firestore.client()
+bucket = storage.bucket()
+
+
+doc_ref = db.collection(u'users').document(u'nicolas')
+doc = None
+try:
+    doc = doc_ref.get()
+    
+except google.cloud.exceptions.NotFound:
+    print(u'No such document!')
+
+
+
 # Email your email here for testing
-toEmail = 'nicolas182@icloud.com'
+toEmail = doc.to_dict()['email']
 
 # Function sends the image of the person detected on your porch
 def sendEmail():
