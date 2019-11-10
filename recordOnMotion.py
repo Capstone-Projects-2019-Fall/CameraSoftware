@@ -1,20 +1,12 @@
 # import the necessary packages
 from libs.pyimagesearch.motion_detection import SingleMotionDetector
-from imutils.video import VideoStream
 from sendToFirebase import upload
-from flask import Response
-from flask import Flask
-from flask import render_template
 import threading
-import argparse
-import datetime
 import imutils
-import time
 import cv2
 from ttictoc import TicToc
 import numpy as np
 import os
-import sys
 
 filename = 'video.mp4'
 frames_per_second = 30.0
@@ -65,10 +57,6 @@ def get_video_type(filename):
 # are viewing tthe stream)
 outputFrame = None
 lock = threading.Lock()
-isRecording = False
-
-
-time.sleep(2.0)
 timer = TicToc()
 
 
@@ -109,11 +97,7 @@ def detect_motion(frameCount):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
 
-        # grab the current timestamp and draw it on the frame
-        timestamp = datetime.datetime.now()
-        cv2.putText(frame, timestamp.strftime(
-            "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+        
 
         # if the total number of frames has reached a sufficient
         # number to construct a reasonable background model, then
@@ -129,24 +113,9 @@ def detect_motion(frameCount):
                     out.release()
                     cv2.destroyAllWindows()
                     print("video Ends")
-                    #upload()
+                    upload()
                     #Tells thread to stop
                     t.do_run = False
-
-            # cehck to see if motion was found in the frame
-            if motion is not None:
-                #If motion happens, restart timer
-                timer.tic()
-                if isRecording == False:
-                    print("Video Starts Here")
-                    #TODO: Remove this... Not using anymore
-                    isRecording = True
-
-                # unpack the tuple and draw the box surrounding the
-                # "motion area" on the output frame
-                (thresh, (minX, minY, maxX, maxY)) = motion
-                cv2.rectangle(frame, (minX, minY), (maxX, maxY),
-                              (0, 0, 255), 2)
 
         # update the background model and increment the total number
         # of frames read thus far

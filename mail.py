@@ -2,10 +2,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-import json
-import datetime as dt
 from email.mime.image import MIMEImage
-import os
 import firebase_admin
 from firebase import firebase
 from firebase_admin import credentials
@@ -17,6 +14,7 @@ from firebase_admin import firestore
 fromEmail = 'mspismartcam@gmail.com'
 #Ask me for Password (Nick)
 fromEmailPassword = 'MspiCamera4398'
+
 
 
 db = firestore.client()
@@ -32,7 +30,7 @@ except google.cloud.exceptions.NotFound:
     print(u'No such document!')
 
 
-
+print(doc.to_dict()['email'])
 # Email your email here for testing
 toEmail = doc.to_dict()['email']
 

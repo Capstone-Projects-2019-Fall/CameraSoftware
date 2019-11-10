@@ -3,20 +3,16 @@
 
 # import the necessary packages
 from imutils.video import VideoStream
-from imutils.video import FPS
 from recordOnMotion import detect_motion
 import numpy as np
 import argparse
-import threading
 import imutils
 import os
 import time
 import cv2
 from mail import sendEmail
-from sendToFirebase import upload
-from selenium import webdriver
 
-time.sleep(2)
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--prototxt", required=False,
@@ -49,8 +45,7 @@ vs = VideoStream(src=0).start()
 
 # vs = VideoStream(usePiCamera=True).start()
 #Sleep allows camera to warmup
-time.sleep(2.0)
-#fps = FPS().start()
+time.sleep(1.0)
 flag = True
 
 # loop over the frames from the video stream
@@ -85,7 +80,6 @@ while flag:
             idx = int(detections[0, 0, i, 1])
             if CLASSES[idx] not in  DETECT:
                 continue
-            fps = FPS().start()
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
 
@@ -107,25 +101,20 @@ while flag:
             sendEmail()
             #upload("image")
             print("done!")
-            fps.stop()
+            
             vs.stop()
             
             #breaks from whil loop
             flag = False
             
-            
-            
-            
-            print("[INFO] elapsed time from detection: {:.2f}".format(fps.elapsed()))
+        
            # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
             # do a bit of cleanup
             cv2.destroyAllWindows()
             break
             
-            
-    
-cv2.destroyAllWindows()
+        
 #Release camera
 vs.stream.release()
 #
