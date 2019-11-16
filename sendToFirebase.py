@@ -1,6 +1,4 @@
 import datetime as dt
-from email.mime.image import MIMEImage
-import os
 import firebase_admin
 from firebase import firebase
 from firebase_admin import credentials
@@ -8,19 +6,11 @@ from firebase_admin import storage
 from google.cloud import firestore
 from firebase_admin import firestore
 
-#Get Credentials from JSON
-cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
-#cred=credentials.Certificate('cred.json')
-firebase_admin.initialize_app(cred, {
-    'storageBucket': 'mspi-a4b75.appspot.com'
-})
-storage_client = firestore.client()
-bucket = storage.bucket()
-
 
 def upload():
     outfile = None
     blob = None
+    bucket = storage.bucket()
     
     name = str(dt.datetime.now())
     
@@ -36,7 +26,7 @@ def upload():
     outfile='/home/pi/Desktop/CameraSoftware/video.mp4'
     #outfile='video.mp4'
     print("Sending Video to Firestore...")
-    blob = bucket.blob( 'videos/'+ name + '.mp4')
+    blob = bucket.blob('videos/'+ name + '.mp4')
     blob.upload_from_filename(outfile)
     print("Video was uploaded to firestore!")
 

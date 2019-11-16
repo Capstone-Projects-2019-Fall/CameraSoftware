@@ -1,12 +1,14 @@
 # import the necessary packages
-from libs.pyimagesearch.motion_detection import SingleMotionDetector
+
 from sendToFirebase import upload
+from libs.pyimagesearch.motion_detection import SingleMotionDetector
 import threading
 import imutils
 import cv2
 from ttictoc import TicToc
 import numpy as np
 import os
+import settings
 
 filename = 'video.mp4'
 frames_per_second = 30.0
@@ -55,9 +57,6 @@ def get_video_type(filename):
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
 # are viewing tthe stream)
-outputFrame = None
-lock = threading.Lock()
-timer = TicToc()
 
 
 def detect_motion(frameCount):
@@ -65,26 +64,34 @@ def detect_motion(frameCount):
         # lock variables
     global outputFrame, lock
     
+    outputFrame = None
+    #lock = threading.Lock()
+    timer = TicToc()
+    
 
     # initialize the motion detector and the total number of frames
     # read thus far
-    md = SingleMotionDetector(accumWeight=0.1)
+    md = SingleMotionDetector(accumWeight=0.2)
     total = 0
-    isRecording = False
+    record = True
 
     # Starts recording
     cap = cv2.VideoCapture(0)
     out = cv2.VideoWriter(filename, get_video_type(
         filename), 25, get_dims(cap, res))
+    
+    
+    
 
     # Starts Timer
     timer.tic()
     #Grab reference to current thread
-    t = threading.currentThread()
+    #t = threading.currentThread()
     # loop over frames from the video stream
     
     #While Thread is not told to stop, keep running
-    while getattr(t, "do_run", True):
+    #while getattr(t, "do_run", True):
+    while (record == True):
 
         # Read video streaming frames and send it to video
         ret, frame = cap.read()
@@ -102,20 +109,29 @@ def detect_motion(frameCount):
         # if the total number of frames has reached a sufficient
         # number to construct a reasonable background model, then
         # continue to process the frame
-        if total > frameCount:
+        if total > 32:
             # detect motion in the image
             motion = md.detect(gray)
+            if(motion is not None):
+               print("motion")
+               timer.tic()
             if(timer.toc() is not None):
                 # print(timer.toc())
-                if(motion is None and timer.toc() >= 5):
+                if((motion is None and timer.toc() >= 10) or settings.lock == True):
                     #Stops recording + Cleanup
                     cap.release()
                     out.release()
+                    out=None
+                    cap=None
+                    md= None
+                    total = 0
                     cv2.destroyAllWindows()
                     print("video Ends")
-                    upload()
+                    record = False
+                    threading.Thread(target=upload).start()
                     #Tells thread to stop
-                    t.do_run = False
+                    #t.do_run = False
+                    break
 
         # update the background model and increment the total number
         # of frames read thus far
@@ -124,8 +140,9 @@ def detect_motion(frameCount):
 
         # acquire the lock, set the output frame, and release the
         # lock
-        with lock:
-            outputFrame = frame.copy()
+        #with lock:
+        outputFrame = frame.copy()
+
 
 
 
