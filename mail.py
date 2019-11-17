@@ -49,7 +49,7 @@ def sendEmail():
     msgText = MIMEText('MSPi security detected a person')
     msgAlternative.attach(msgText)
 
-    msgText = MIMEText('<img src="cid:image1">', 'html')
+    msgText = MIMEText('<div>Hello There</div><img src="cid:image1">', 'html')
     msgAlternative.attach(msgText)
 
     
@@ -65,3 +65,5 @@ def sendEmail():
     smtp.login(fromEmail, fromEmailPassword)
     smtp.sendmail(fromEmail, toEmail, msgRoot.as_string())
     smtp.quit()
+
+
