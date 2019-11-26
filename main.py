@@ -1,27 +1,14 @@
 #-------------------------------------------------------------------------------#
 #Import Libraries
 import time
+import os
 import settings
-import firebase_admin
-from firebase import firebase
-from firebase_admin import credentials
-from firebase_admin import storage
-from google.cloud import firestore
-from firebase_admin import firestore
+
 
 #-------------------------------------------------------------------------------#
-
 #Initialize Global Variables
 settings.init()
 
-#INITIALIZE FIREBASE APP
-cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
-#cred=credentials.Certificate('cred.json')
-firebase_admin.initialize_app(cred, {
-    'storageBucket': 'mspi-a4b75.appspot.com'
-})
-storage_client = firestore.client()
-#-------------------------------------------------------------------------------#
 
 #-------------------------------------------------------------------------------#
 #import modules
@@ -34,58 +21,82 @@ from recordOnMotion import detect_motion
 def on_snapshot(col_snapshot, changes, read_time):
     
     for change in changes:
-        print(u'New city: {}'.format(change.document.to_dict().get('what')))
         if change.type.name == 'ADDED':
             if(change.document.to_dict().get('what') == 'lock'):
                 print('LOCK DOC')
+                
                 settings.lock = True
                 settings.unlock = False
+                
+                
+              
             if(change.document.to_dict().get('what') == 'unlock'):
                 print('UNLOCK DOC')
+                os.system("pkill chromium")
                 settings.unlock = True
                 settings.lock = False
+                
+                
+                
+        if change.type.name == 'MODIFIED':
+            if(change.document.to_dict().get('active') == False):
+                settings.active = False
+            if(change.document.to_dict().get('active') == True):
+                settings.active = True
 
-
+storage_client = settings.firestore.client()
 #Watchers
-col_query_lock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'lock')
-col_query_unlock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'unlock')
-query_watch = col_query_lock.on_snapshot(on_snapshot)
-query_watch2 = col_query_unlock.on_snapshot(on_snapshot)
+col_query_lock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'lock').where(u'target', u'==', settings.cameraID)
+col_query_unlock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'unlock').where(u'sender', u'==', settings.cameraID)
+col_query_camera_status = storage_client.collection(u'cameras').document(settings.cameraID)
+    
+query_watch_camera_status = col_query_camera_status.on_snapshot(on_snapshot)
+query_watch_lock = col_query_lock.on_snapshot(on_snapshot)
+query_watch_unlock = col_query_unlock.on_snapshot(on_snapshot)
+
 
 #Camera warms up
 time.sleep(2)
 
-#Main infinite loop
+#Infinite Loop
 while True:
-    #Camera functions
-    while settings.lock is False:    
-        if settings.lock == False:
-            print("Object recognition Called")
-            #time.sleep(5)
-            detect_object()
-        if settings.lock == False:
-            print("Video Started")
-            #time.sleep(5)
-            detect_motion(32)
-            print("Video Ended")
-    
-    
-    print("LOCKED")
-    firstTime = True
-    
-    #Live Streaming
-    while settings.unlock is False:
-        #col_query_unlock.on_snapshot(on_snapshot)
-        if firstTime:
-            print("Started WebRTC")
-            firstTime = False
-           
-
-       
+    #Master loop
+    if settings.active is True:
+        #Loop will start upon camera activation
+        while settings.active is True:
+            #Camera functions
+            while settings.lock is False and settings.active is True:
+                print("UNLOCK")
+                if settings.lock == False and settings.active == True:
+                    print("Object recognition Called")
+                    #time.sleep(5)
+                    detect_object()
+                if settings.lock == False and settings.active == True:
+                    print("Video Started")
+                    #time.sleep(5)
+                    detect_motion(32)
+                    print("Video Ended")
             
-    print("stopping webRTC")
-        
-        
+            
+            print("LOCKED")
+            firstTime = True
+            
+            #Live Streaming
+            while settings.unlock is False and settings.active is True:
+                #col_query_unlock.on_snapshot(on_snapshot)
+                if firstTime:
+                    print("Started WebRTC")
+                    firstTime = False
+                    os.system("chromium-browser localhost")
+                    
+                   
+
+               
+            
+            print("stopping webRTC")
+            
+            
+            
     
     
 

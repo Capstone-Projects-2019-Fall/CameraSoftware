@@ -5,6 +5,7 @@
 from imutils.video import VideoStream
 import numpy as np
 from mail import sendEmail
+from facerecognition import recognize_faces
 #from recordOnMotion import detect_motion
 import imutils
 import os
@@ -41,9 +42,10 @@ def detect_object():
     #Sleep allows camera to warmup
     time.sleep(1.0)
     flag = True
-
+    
     # loop over the frames from the video stream
-    while (flag == True and settings.lock == False):
+    while ((flag is True) and (settings.lock is False) and (settings.active is True)):
+        print("ARMED")
         # grab the frame from the threaded video stream and resize it
         # to have a maximum width of 400 pixels
         frame = vs.read()
@@ -91,8 +93,13 @@ def detect_object():
                 key = cv2.waitKey(1) & 0xFF
                 cv2.imwrite('/home/pi/Desktop/CameraSoftware/WhoDat.jpg',frame)
                 #cv2.imwrite('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg',frame)
+                
+                print("Recognizing Faces...")
+                people = list()
+                people = recognize_faces()
+                
                 print("Sending email...")
-                threading.Thread(target=sendEmail).start()
+                threading.Thread(target=sendEmail, args=[people]).start()
                 #sendEmail()
                 print("done!")
                 

@@ -85,13 +85,8 @@ def detect_motion(frameCount):
 
     # Starts Timer
     timer.tic()
-    #Grab reference to current thread
-    #t = threading.currentThread()
-    # loop over frames from the video stream
-    
-    #While Thread is not told to stop, keep running
-    #while getattr(t, "do_run", True):
-    while (record == True):
+
+    while (record is True):
 
         # Read video streaming frames and send it to video
         ret, frame = cap.read()
@@ -117,7 +112,7 @@ def detect_motion(frameCount):
                timer.tic()
             if(timer.toc() is not None):
                 # print(timer.toc())
-                if((motion is None and timer.toc() >= 10) or settings.lock == True):
+                if((motion is None and timer.toc() >= 10) or (settings.lock is True) or (settings.active is False)):
                     #Stops recording + Cleanup
                     cap.release()
                     out.release()

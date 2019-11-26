@@ -1,10 +1,30 @@
+#--------------------------------------------------------------------------------------------------#
+#Imports
+
 import os
 import face_recognition
+import firebase_admin
+from firebase import firebase
+from firebase_admin import credentials
+from firebase_admin import storage
+from google.cloud import firestore
+from firebase_admin import firestore
+from downloadFaces import download_faces
+
 
 def init():
 #Initializer
-   
-    #Globals
+#--------------------------------------------------------------------------------------------------#    
+#Starting FireStore
+    cred=credentials.Certificate('/home/pi/Desktop/CameraSoftware/cred.json')
+    #cred=credentials.Certificate('cred.json')
+    app = firebase_admin.initialize_app(cred, {
+        'storageBucket': 'mspi-a4b75.appspot.com'
+    })
+    storage_client = firestore.client()
+    
+#--------------------------------------------------------------------------------------------------#  
+#Globals
     global lock
     global unlock
     global cameraID
@@ -13,26 +33,47 @@ def init():
     global userID
     global active
     global ready
-    
+#--------------------------------------------------------------------------------------------------#      
+#Set Globals  
     cameraID = "00123"
     lock = False
     unlock = True
     known_face_encodings = []
+    
+#Get UserID
+    user_collection = storage_client.collection('users')
+    results = user_collection.where('cameras', u'array_contains', cameraID).get()
+    for item in results:
+        userID = item.id
+    
+#Download Faces to Be Recognized
+    download_faces()
+    #print("Faces Downloaded!")
+
+#Clear WebRTC
+    web_rtc_col = storage_client.collection('webrtctest')
+    to_be_deleted = web_rtc_col.where(u'sender', u'==', cameraID).get()
+    lala = firebase.FirebaseApplication('https://https://mspi-a4b75.firebaseio.com', None)
+    for item in to_be_deleted:
+        print(item.id)
+        
+        storage_client.collection(u'webrtctest').document(item.id).delete()
+        #print("Deleted!")
+    
+#Active Signal
+    #LISTEN FOR ACTIVATION
     active = False
+    
+#Camera is not Ready -> Alerts database that camera is not ready for use
     ready = False
+    camera_collection = storage_client.collection('cameras')
+    document = camera_collection.document(cameraID) 
+    field_updates = {"ready": False}
+    document.update(field_updates)
     
-    #Download all pics from
-    #Get Camera user
-    #setup paths for webRTC
-    #setup paths to pictures and videos
-    #Listen for activation
-    #Send Ready Signal
-    
-    #Setup FireBase Credentials
-    
-    
-    
-    #Train Face data models
+#--------------------------------------------------------------------------------------------------#  
+
+#Train Face data models
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     image_dir = os.path.join(BASE_DIR, 'familiarFaces')
 
@@ -54,11 +95,6 @@ def init():
 
     #Open Images and create encodings
 
-
-    print("Paths retrieved: ", paths)
-
-    print("Labels Retrieved", labels)
-
     #loop through Names and add them to known_face_names
     #Load Picture to be compared
 
@@ -70,3 +106,21 @@ def init():
     
     
     known_face_names = labels
+    
+#--------------------------------------------------------------------------------------------------#  
+#Set Ready = True on db
+    ready = True
+    camera_collection = storage_client.collection('cameras')
+    document = camera_collection.document(cameraID) 
+    field_updates = {"ready": True}
+    document.update(field_updates)
+    
+#Create Doc on database webrtctest
+    data = {
+        u'sender':cameraID,
+        u'what': u'unlock'
+        }
+    storage_client.collection(u'webrtctest').document('1234').set(data)
+ 
+    
+        
