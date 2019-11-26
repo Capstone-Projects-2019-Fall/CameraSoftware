@@ -9,6 +9,7 @@ from firebase_admin import credentials
 from firebase_admin import storage
 from google.cloud import firestore
 from firebase_admin import firestore
+import settings
 
 #Email will be sent from MSPi Gmail account
 fromEmail = 'mspismartcam@gmail.com'
@@ -26,7 +27,7 @@ bucket = storage.bucket()
 # Function sends the image of the person detected on your porch
 def sendEmail(people):
    
-    doc_ref = db.collection(u'users').document(u'SD3qcbNMAjTx7ComsRGTXFji22d2')
+    doc_ref = db.collection(u'users').document(settings.userID)
     doc = None
     try:
         doc = doc_ref.get()
