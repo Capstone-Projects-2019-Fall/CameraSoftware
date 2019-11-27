@@ -6,7 +6,6 @@ import threading
 import imutils
 import cv2
 from ttictoc import TicToc
-import numpy as np
 import os
 import settings
 
@@ -54,21 +53,14 @@ def get_video_type(filename):
     return VIDEO_TYPE['mp4']
 
 
-# initialize the output frame and a lock used to ensure thread-safe
-# exchanges of the output frames (useful for multiple browsers/tabs
-# are viewing tthe stream)
-
-
 def detect_motion(frameCount):
-        # grab global references to the video stream, output frame, and
-        # lock variables
-    global outputFrame, lock
-    
+    # grab global references to outputFrame
+    global outputFrame
     outputFrame = None
-    #lock = threading.Lock()
+    
+    #Create timer
     timer = TicToc()
     
-
     # initialize the motion detector and the total number of frames
     # read thus far
     md = SingleMotionDetector(accumWeight=0.2)
@@ -80,12 +72,11 @@ def detect_motion(frameCount):
     out = cv2.VideoWriter(filename, get_video_type(
         filename), 25, get_dims(cap, res))
     
-    
-    
 
     # Starts Timer
     timer.tic()
-
+    
+    #Recording starts
     while (record is True):
 
         # Read video streaming frames and send it to video
@@ -107,11 +98,14 @@ def detect_motion(frameCount):
         if total > 32:
             # detect motion in the image
             motion = md.detect(gray)
+            #If motion is detected, restart timer
             if(motion is not None):
                print("motion")
                timer.tic()
+               
             if(timer.toc() is not None):
                 # print(timer.toc())
+                #Stop video if motion has ceased for 10s or lock has been placed by webRTC or user has deactivated the camera
                 if((motion is None and timer.toc() >= 10) or (settings.lock is True) or (settings.active is False)):
                     #Stops recording + Cleanup
                     cap.release()
@@ -123,9 +117,9 @@ def detect_motion(frameCount):
                     cv2.destroyAllWindows()
                     print("video Ends")
                     record = False
+                    #Starts a new thread that will upload the video to Firebase
                     threading.Thread(target=upload).start()
-                    #Tells thread to stop
-                    #t.do_run = False
+                    
                     break
 
         # update the background model and increment the total number

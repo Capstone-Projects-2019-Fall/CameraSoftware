@@ -17,11 +17,16 @@ def download_faces():
     firebase = pyrebase.initialize_app(config)
 
     storage = firebase.storage()
-
+    
+    #Query for familiarFaces name array from user in Firebase 
     user_collection = storage_client.collection('users')
     results = user_collection.document(settings.userID).get()
-
     faces = results.to_dict().get('familiarFaces')
-
-    for face in faces:
-        storage.child(settings.userID+"/Training/"+face).download("/home/pi/Desktop/CameraSoftware/familiarFaces/"+face)
+    
+    #Download those faces from firbase storage
+    if faces:
+        for face in faces:
+            storage.child(settings.userID+"/Training/"+face).download("/home/pi/Desktop/CameraSoftware/familiarFaces/"+face)
+    else:
+        print("No Faces")
+    

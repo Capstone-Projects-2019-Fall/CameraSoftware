@@ -4,11 +4,9 @@ import time
 import os
 import settings
 
-
 #-------------------------------------------------------------------------------#
 #Initialize Global Variables
 settings.init()
-
 
 #-------------------------------------------------------------------------------#
 #import modules
@@ -23,20 +21,15 @@ def on_snapshot(col_snapshot, changes, read_time):
     for change in changes:
         if change.type.name == 'ADDED':
             if(change.document.to_dict().get('what') == 'lock'):
-                print('LOCK DOC')
-                
+                print('LOCKED')
                 settings.lock = True
                 settings.unlock = False
-                
-                
-              
+   
             if(change.document.to_dict().get('what') == 'unlock'):
-                print('UNLOCK DOC')
+                print('UNLOCKED')
                 os.system("pkill chromium")
                 settings.unlock = True
                 settings.lock = False
-                
-                
                 
         if change.type.name == 'MODIFIED':
             if(change.document.to_dict().get('active') == False):
@@ -45,6 +38,7 @@ def on_snapshot(col_snapshot, changes, read_time):
                 settings.active = True
 
 storage_client = settings.firestore.client()
+
 #Watchers
 col_query_lock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'lock').where(u'target', u'==', settings.cameraID)
 col_query_unlock = storage_client.collection(u'webrtctest').where(u'what', u'==', u'unlock').where(u'sender', u'==', settings.cameraID)
@@ -66,7 +60,6 @@ while True:
         while settings.active is True:
             #Camera functions
             while settings.lock is False and settings.active is True:
-                print("UNLOCK")
                 if settings.lock == False and settings.active == True:
                     print("Object recognition Called")
                     #time.sleep(5)
@@ -88,11 +81,7 @@ while True:
                     print("Started WebRTC")
                     firstTime = False
                     os.system("chromium-browser localhost")
-                    
-                   
-
-               
-            
+      
             print("stopping webRTC")
             
             

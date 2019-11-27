@@ -1,14 +1,13 @@
 import settings
 import cv2
 from ttictoc import TicToc
-
-
-
+#Create timer
 timer = TicToc()
 
 def recognize_faces():
+    
     faces_recognized = []
-    print("START")
+    #Start Timer
     timer.tic()
     
     # Load test image to find faces in
@@ -24,12 +23,9 @@ def recognize_faces():
     face_locations = settings.face_recognition.face_locations(rgb_small_frame)
     face_encodings = settings.face_recognition.face_encodings(rgb_small_frame, face_locations)
 
-
-    print("Images Encoded...")
     # Loop through faces in test image
     for(top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         matches = settings.face_recognition.compare_faces(settings.known_face_encodings, face_encoding)
-        print("Face Rec started...")
         name = "Unknown Person"
 
         # If match
@@ -40,11 +36,8 @@ def recognize_faces():
         else:
             faces_recognized.append(name)
             
-    for face in faces_recognized:
-        print(face)
     print(timer.toc())
         
-    #FUTURE:
     return faces_recognized
             
 

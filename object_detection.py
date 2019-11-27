@@ -1,21 +1,12 @@
- # USAGE
-# python real_time_object_detection.py --prototxt MobileNetSSD_deploy.prototxt.txt --model MobileNetSSD_deploy.caffemodel
-
 # import the necessary packages
 from imutils.video import VideoStream
 import numpy as np
 from mail import sendEmail
 from facerecognition import recognize_faces
-#from recordOnMotion import detect_motion
 import imutils
-import os
-import time
 import cv2
 import threading
 import settings
-
-
-
 
 def detect_object():
     # initialize the list of class labels MobileNet SSD was trained to
@@ -33,21 +24,17 @@ def detect_object():
     print("[INFO] loading model...")
     net = cv2.dnn.readNetFromCaffe("MobileNetSSD_deploy.prototxt.txt", "MobileNetSSD_deploy.caffemodel")
 
-    # initialize the video stream, allow the cammera sensor to warmup,
-    # and initialize the FPS counter
+    # initialize the video stream
     print("[INFO] starting video stream...")
     vs = VideoStream(src=0).start()
 
-    # vs = VideoStream(usePiCamera=True).start()
-    #Sleep allows camera to warmup
-    time.sleep(1.0)
+    #Flag to break loop
     flag = True
     
     # loop over the frames from the video stream
     while ((flag is True) and (settings.lock is False) and (settings.active is True)):
-        print("ARMED")
         # grab the frame from the threaded video stream and resize it
-        # to have a maximum width of 400 pixels
+        # to have a maximum width of 800 pixels
         frame = vs.read()
         frame = imutils.resize(frame, width=800)
 
@@ -100,16 +87,12 @@ def detect_object():
                 
                 print("Sending email...")
                 threading.Thread(target=sendEmail, args=[people]).start()
-                #sendEmail()
                 print("done!")
                 
                 vs.stop()
                 
                 #breaks from whil loop
                 flag = False
-                
-            
-               # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
                 # do a bit of cleanup
                 cv2.destroyAllWindows()
@@ -118,6 +101,5 @@ def detect_object():
             
     #Release camera
     vs.stream.release()
-    #
-    #detect_motion(32,)
+
 

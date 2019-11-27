@@ -16,13 +16,8 @@ fromEmail = 'mspismartcam@gmail.com'
 #Ask me for Password (Nick)
 fromEmailPassword = 'MspiCamera4398'
 
-
-
 db = firestore.client()
 bucket = storage.bucket()
-
-
-
 
 # Function sends the image of the person detected on your porch
 def sendEmail(people):
@@ -116,7 +111,7 @@ def sendEmail(people):
                         </div>
                     </div>
                     <div style='display: block'>
-                        <h2>''' + people[0] + ''', and ''' +  people[1] + '''</h2>
+                        <h2>''' + people[0] + ''',''' +  people[1] + ''', and '''+ str(len(people) -2) + ''' others</h2>
                     </div>    
                     <div>
                         <img src="cid:image1" style='border:1px solid black ;margin-left:150px;'>
@@ -174,7 +169,6 @@ def sendEmail(people):
 
     
     fp = open('/home/pi/Desktop/CameraSoftware/WhoDat.jpg', 'rb')
-    #fp = open('/Users/nick/Desktop/cameraRepo/CameraSoftware/WhoDat.jpg', 'rb')
     fp2 = open('/home/pi/Desktop/CameraSoftware/mspi.png', 'rb')
     msgImage2 = MIMEImage(fp2.read())
     msgImage2.add_header('Content-ID', '<image2>')

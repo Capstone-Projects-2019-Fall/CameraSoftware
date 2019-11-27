@@ -38,11 +38,12 @@ def init():
     cameraID = "00123"
     lock = False
     unlock = True
+    active = False
     known_face_encodings = []
     
 #Get UserID
     user_collection = storage_client.collection('users')
-    results = user_collection.where('cameras', u'array_contains', cameraID).get()
+    results = user_collection.where('cameraIds', u'array_contains', cameraID).get()
     for item in results:
         userID = item.id
     
@@ -54,15 +55,9 @@ def init():
     web_rtc_col = storage_client.collection('webrtctest')
     to_be_deleted = web_rtc_col.where(u'sender', u'==', cameraID).get()
     lala = firebase.FirebaseApplication('https://https://mspi-a4b75.firebaseio.com', None)
-    for item in to_be_deleted:
-        print(item.id)
-        
+    for item in to_be_deleted: 
         storage_client.collection(u'webrtctest').document(item.id).delete()
-        #print("Deleted!")
-    
-#Active Signal
-    #LISTEN FOR ACTIVATION
-    active = False
+        
     
 #Camera is not Ready -> Alerts database that camera is not ready for use
     ready = False
@@ -80,24 +75,19 @@ def init():
     labels = []
     paths = []
 
-    print("Looping through images...")
     #Loop through all images in directory
     for root, dirs, files in os.walk(image_dir):
         for file in files:
             if file.endswith("png") or file.endswith("jpg") or file.endswith("JPG"):
                 path = os.path.join(root, file)
                 
-                #label comes from folder name
-            
+                #label comes from file name
                 label = file.split(".")[0]
                 paths.append(path)
                 labels.append(label)
 
     #Open Images and create encodings
-
     #loop through Names and add them to known_face_names
-    #Load Picture to be compared
-
     for i in range (0, len(paths)):
         tempImage = face_recognition.load_image_file(paths[i])
         tempEncoding = face_recognition.face_encodings(tempImage)[0]
