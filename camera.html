@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Page Title</title>
+</head>
+
+<body>
+    <!-- <video id="myVideo" autoplay muted playsinline></video> -->
+    <audio id="piVideo" autoplay playsinline></audio>
+    <!-- <button onclick="connectToPi()" type="button">Call</button> -->
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.1.0/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.1.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.1.0/firebase-firestore.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyC2AMehEW9xsxtLdVKHzZG7ENNh2wrBNw0",
+            authDomain: "mspi-a4b75.firebaseapp.com",
+            databaseURL: "https://mspi-a4b75.firebaseio.com",
+            projectId: "mspi-a4b75",
+            storageBucket: "mspi-a4b75.appspot.com",
+            messagingSenderId: "224698699586",
+            appId: "1:224698699586:web:33bb9a289a097f74a302db",
+            measurementId: "G-RBB4FBV72Q"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+
+        var db = firebase.firestore();
+        var servers = {
+            iceServers: [{
+                    urls: "stun:stun.l.google.com:19302"
+                },
+                {
+                    urls: "stun:stun.services.mozilla.com"
+                },
+                {
+                    urls: "turn:numb.viagenie.ca",
+                    credential: "charlietheunicorn",
+                    username: "mspi.temple@gmail.com"
+                }
+            ]
+        };
+        const dbCollection = "webrtctest";
+        //   var myVideo = document.getElementById("myVideo");
+        var piVideo = document.getElementById("piVideo");
+        var cameraId = "00123";
+
+        //Should fetch from firebase
+        var clientId = "TestClient1";
+
+        //Variable that holds the ice candidate listener.
+        let iceListener = null;
+
+        //Livestream Object
+        let pc = null;
+
+        let hasLocalDesc = false;
+        let hasRemoteDesc = false;
+
+        //Runs once to remove any previous traces of calls
+        //removeTraces();
+
+        //Fetching user
+        db.collection("cameras").doc(cameraId).get().then((doc) => {
+            if (doc.exists) {
+                console.log("Document data:", doc.data());
+                clientId = doc.data().user;
+
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("Camera is not registered");
+            }
+        })
+        .then(() => {
+            listenLock();
+            listen();
+        })
+        .catch(function (error) {
+            console.log("Error getting document:", error);
+        });
+
+        function removeTraces() {
+            db.collection(dbCollection)
+                .where("sender", "==", cameraId)
+                .get()
+                .then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        doc.ref.delete();
+                    });
+                })
+                .catch(function (error) {
+                    console.log("Error getting documents: ", error);
+                });
+        }
+
+        //On first init cameraStream is null
+        let cameraStream = null;
+
+
+        //Pseudo lock to make sure we can't have parallel resets
+        let resetLock = true;
+        let isStreaming = false;
+
+        //Sends unlock signal if one isn't already there
+        /**************************************
+        !!! For debugging !!!
+        In prod, embedded system handles lock and launches this page when unlock is removed.
+        Putting an unlock back in breaks the state machine.
+        This is here for when this page is launched manually and waiting for a lock.
+        **************************************/
+        // db.collection(dbCollection)
+        //     .where("sender", "==", cameraId)
+        //     .where("what", "==", "unlock")
+        //     .get()
+        //     .then(querySnapshot => {
+        //         if (querySnapshot.empty) {
+        //             sendMessage("unlock");
+        //         }
+        //     });
+
+        //First init
+        //Listens for a lock signal before calling reset()
+        function listenLock(){
+            db.collection(dbCollection)
+            .where("sender", "==", clientId)
+            .where("what", "==", "lock")
+            .where("target", "==", cameraId)
+            .onSnapshot(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    if (doc.exists && !isStreaming) {
+                        //alert("Doc exists");
+                        reset();
+                        isStreaming = true;
+                    }
+                });
+            });
+        }
+
+        function reset() {
+            hasLocalDesc = false;
+            hasRemoteDesc = false;
+
+            // if (pc !== null){
+            //     pc.close();
+            // }
+            removeTraces();
+            //Resets RTC object
+            pc = new RTCPeerConnection(servers);
+
+            pc.onicecandidate = event =>
+                event.candidate ?
+                sendMessage("iceCandidate", event.candidate, clientId) :
+                console.log("Sent All Ice");
+            pc.onaddstream = event => (piVideo.srcObject = event.stream);
+            pc.oniceconnectionstatechange = () => {
+                console.log("Ice state:" + pc.iceConnectionState);
+                if (pc.iceConnectionState == 'disconnected') {
+                    if (!resetLock) {
+                        resetLock = true;
+                        isStreaming = false;
+                        db.collection(dbCollection)
+                            .where("sender", "==", clientId)
+                            .where("what", "==", "lock")
+                            .where("target", "==", cameraId)
+                            .get()
+                            //Deleting lock
+                            .then(querySnapshot => {
+                                querySnapshot.forEach(doc => {
+                                    deleteRecord(doc.id);
+                                });
+                            })
+                            .catch(function (error) {
+                                console.log("Error getting document:", error);
+                            })
+                            .then(sendMessage("unlock"));
+                    }
+                }
+            }
+            //Disconnects listener since we don't have a connnection
+            if (iceListener !== null) {
+                iceListener();
+            }
+            piVideo.srcObject = null;
+            console.log('Disconnected');
+            initLocal(cameraStream);
+            resetLock = false;
+        }
+
+        function hasUserMedia() {
+            //check if the browser supports the WebRTC
+            return !!(
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia
+            );
+        }
+
+        function initLocal(cameraStream) {
+            if (cameraStream !== null) {
+                addStream(cameraStream);
+                //pc.restartIce();
+            }
+            if (hasUserMedia()) {
+                navigator.getUserMedia =
+                    navigator.getUserMedia ||
+                    navigator.webkitGetUserMedia ||
+                    navigator.mozGetUserMedia;
+
+                //enabling video and audio channels
+                navigator.getUserMedia({
+                        video: {
+                            width: 640,
+                            height: 480,
+                            frameRate: 30
+                        },
+                        audio: true
+                    },
+                    function (stream) {
+                        cameraStream = stream;
+                        addStream(cameraStream);
+                    },
+                    function (err) {}
+                );
+
+                function addStream(stream) {
+                    //myVideo.srcObject = stream;
+                    pc.addStream(stream);
+                    //If Pi doesn't have a local 'address' yet, create one
+                    if (!hasLocalDesc) {
+                        pc
+                            .createOffer()
+                            .then(offer => pc.setLocalDescription(offer))
+                            //Puts local 'address' into firebase for client to retrieve
+                            .then(() => sendMessage("offer", pc.localDescription, clientId))
+                            .then(() => console.log("Sent offer:"))
+                            .then(() => console.log(pc.localDescription))
+                            .then(() => hasLocalDesc = true)
+                            .catch(() => console.log("Offer failed to be created"));
+                    }
+                }
+            } else {
+                alert("WebRTC is not supported");
+            }
+        }
+
+
+        //Send message to firebase
+        function sendMessage(type, data = "", target = "", options = {}) {
+            let d = JSON.stringify(data);
+            let date = new Date();
+            let toSend = {
+                sender: cameraId,
+                what: type,
+                data: d,
+                target: target,
+                options: options,
+                debug: "Date inserted: " + date.toLocaleString()
+            };
+            db.collection(dbCollection).add(toSend);
+            console.log(toSend);
+        }
+
+        //RTCSessionDescription requires a RTCSessionDescriptionInit object to be created
+        //This makes sure the object is correctly structured
+        function convertToRTCSessionDescriptionInit(data) {
+            let cache = {
+                type: data.type,
+                sdp: data.sdp
+            };
+            return cache;
+        }
+
+        function listenIce() {
+            console.log("Listening for ice")
+            iceListener = db.collection(dbCollection)
+                .where("sender", "==", clientId)
+                .where("target", "==", cameraId)
+                .onSnapshot(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        let type = doc.data().what;
+                        let data = JSON.parse(doc.data().data);
+                        console.log(data);
+                        if (type == "iceCandidate") {
+                            //iceCandidates allow NAT Traversal so the two sides can find each other
+                            pc.addIceCandidate(new RTCIceCandidate(data));
+                            deleteRecord(doc.id);
+                            console.log("Recieved Ice");
+                        }
+                        //console.log(`${doc.id} => ${doc.data().what}`);
+                    });
+                });
+        }
+
+        function deleteRecord(id) {
+            //Delete signal so we don't process it again
+            db.collection(dbCollection)
+                .doc(id)
+                .delete()
+                .then(function () {
+                    console.log("Document successfully deleted!");
+                })
+                .catch(function (error) {
+                    console.error("Error removing document: ", error);
+                });
+        }
+
+        //Attaches listener to listen for connetion from client
+        //Runs function every time it detects a change
+        function listen() {
+            db.collection(dbCollection)
+            .where("sender", "==", clientId)
+            .where("target", "==", cameraId)
+            .onSnapshot((querySnapshot) => {
+
+                //Searched database for response from the offer we sent
+                querySnapshot.forEach(function (doc) {
+                    let type = doc.data().what;
+                    let data = JSON.parse(doc.data().data);
+                    //console.log(data);
+                    if (type == "answer" && !hasRemoteDesc && !resetLock) {
+                        data.type = type;
+                        data = convertToRTCSessionDescriptionInit(data);
+                        //If recieving an answer to our offer, set it as remote "address" for WebRTC
+                        pc.setRemoteDescription(new RTCSessionDescription(data))
+                            .then(() => deleteRecord(doc.id))
+                            .catch(() => console.log("Answer failed to be set"));
+                        hasRemoteDesc = true;
+                        console.log("Recieved answer:");
+                        console.log(data);
+
+                        //We should have an address now, so we can start listening to ICE objects from client
+                        listenIce();
+                    } else if (type == "hangup") {
+                        deleteRecord(doc.id);
+                        if (!resetLock) {
+                            resetLock = true;
+                            isStreaming = false;
+                            db.collection(dbCollection)
+                                .where("sender", "==", clientId)
+                                .where("what", "==", "lock")
+                                .where("target", "==", cameraId)
+                                .get()
+                                //Deleting lock
+                                .then(querySnapshot => {
+                                    querySnapshot.forEach(doc => {
+                                        if (doc.exists) {
+                                            deleteRecord(doc.id);
+                                        } else {
+                                            // doc.data() will be undefined in this case
+                                            console.log("No such document!");
+                                            return;
+                                        }
+                                    });
+                                })
+                                .catch(function (error) {
+                                    console.log("Error getting document:", error);
+                                })
+                                .then(sendMessage("unlock"));
+                        }
+                    }
+                    //console.log(`${doc.id} => ${doc.data().what}`);
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
