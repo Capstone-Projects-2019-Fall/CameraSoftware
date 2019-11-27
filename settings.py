@@ -110,7 +110,7 @@ def init():
         u'sender':cameraID,
         u'what': u'unlock'
         }
-    storage_client.collection(u'webrtctest').document('1234').set(data)
+    storage_client.collection(u'webrtctest').document().set(data)
  
     
         
