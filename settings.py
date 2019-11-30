@@ -38,7 +38,6 @@ def init():
     cameraID = "00123"
     lock = False
     unlock = True
-    active = False
     known_face_encodings = []
     
 #Get UserID
@@ -58,11 +57,15 @@ def init():
     for item in to_be_deleted: 
         storage_client.collection(u'webrtctest').document(item.id).delete()
         
+#Camera is not Active -> Alerts database that camera is not ready for use
+    active = False
+    camera_collection = storage_client.collection('cameras')
+    document = camera_collection.document(cameraID) 
+    field_updates = {"active": False}
+    document.update(field_updates)        
     
 #Camera is not Ready -> Alerts database that camera is not ready for use
     ready = False
-    camera_collection = storage_client.collection('cameras')
-    document = camera_collection.document(cameraID) 
     field_updates = {"ready": False}
     document.update(field_updates)
     
