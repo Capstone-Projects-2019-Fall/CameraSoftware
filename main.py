@@ -15,6 +15,8 @@ from recordOnMotion import detect_motion
 #-------------------------------------------------------------------------------#
 
 
+os.system("sudo pkill x")
+
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(col_snapshot, changes, read_time):
     
@@ -67,7 +69,7 @@ while True:
                 if settings.lock == False and settings.active == True:
                     print("Video Started")
                     #time.sleep(5)
-                    detect_motion(32)
+                    detect_motion(16)
                     print("Video Ended")
             
             
