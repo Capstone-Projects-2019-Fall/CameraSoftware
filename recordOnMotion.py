@@ -105,7 +105,7 @@ def detect_motion(frameCount):
             if(timer.toc() is not None):
                 # print(timer.toc())
                 #Stop video if motion has ceased for 10s or lock has been placed by webRTC or user has deactivated the camera
-                if((motion is None and timer.toc() >= 10) or (settings.lock is True) or (settings.active is False)):
+                if((motion is None and timer.toc() >= 5) or (settings.lock is True) or (settings.active is False)):
                     #Stops recording + Cleanup
                     cap.release()
                     out.release()
